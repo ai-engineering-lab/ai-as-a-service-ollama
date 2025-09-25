@@ -118,12 +118,16 @@ The instance will automatically:
 ```
 terra-ollama-1/
 ├── main.tf                    # Main Terraform configuration
-├── terraform.tfstate          # Terraform state file
-├── terraform.tfstate.backup   # Backup state file
+├── terraform.tfvars.example   # User configuration template
 ├── test-ollama-gemma.sh       # Comprehensive test suite
-├── gemma-chat.sh             # Interactive chat interface
-├── README.md                 # This file
-└── .terraform/               # Terraform provider cache
+├── gemma-chat.sh             # Simple shell chat interface
+├── gemma_interactive.py      # Advanced Python chat interface
+├── setup_python_env.sh       # Python environment setup
+├── requirements.txt          # Python dependencies
+├── credentials.template       # Environment variables template
+├── README.md                 # Complete documentation
+├── .gitignore                # Git exclusion rules
+└── .terraform/               # Terraform provider cache (excluded from git)
 ```
 
 ## 🔧 Configuration Details
@@ -165,9 +169,67 @@ curl -X POST http://15.222.244.108:11434/api/generate \
 curl http://15.222.244.108:11434/api/tags
 ```
 
+## 🐍 Python Interactive Interface
+
+### Features
+- **Real-time streaming** responses
+- **Conversation history** management
+- **Model switching** on the fly
+- **Session statistics** and timing
+- **Save/load** conversations
+- **Colored terminal** output
+- **Command system** for advanced features
+
+### Setup
+```bash
+# Install Python dependencies
+./setup_python_env.sh
+
+# Or with virtual environment
+./setup_python_env.sh --venv
+```
+
+### Usage Examples
+```bash
+# Basic usage
+python3 gemma_interactive.py
+
+# Connect to specific EC2 instance
+python3 gemma_interactive.py -H 15.222.244.108
+
+# Use different model
+python3 gemma_interactive.py -m gemma2:2b
+
+# Connect to EC2 hostname
+python3 gemma_interactive.py -H ec2-15-222-244-108.ca-central-1.compute.amazonaws.com
+```
+
+### Available Commands
+- `/help` - Show help information
+- `/models` - List available models
+- `/model <name>` - Switch to different model
+- `/save [filename]` - Save conversation
+- `/load <filename>` - Load conversation
+- `/clear` - Clear conversation history
+- `/stats` - Show session statistics
+- `/stream` - Toggle streaming mode
+- `/history` - Show conversation history
+- `/quit` - Exit the chat
+
 ### Interactive Chat
+
+**Shell Script (Simple):**
 ```bash
 ./gemma-chat.sh
+```
+
+**Python Interface (Advanced):**
+```bash
+# Setup Python environment
+./setup_python_env.sh
+
+# Run interactive chat
+python3 gemma_interactive.py -H YOUR_EC2_IP
 ```
 
 ### SSH Access

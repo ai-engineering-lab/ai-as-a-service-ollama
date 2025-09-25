@@ -1,0 +1,3 @@
+# Python dependencies for Gemma Interactive Chat
+requests>=2.31.0
+argparse
