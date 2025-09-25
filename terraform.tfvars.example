@@ -1,0 +1,19 @@
+# Terraform Variables Example
+# Copy this file to terraform.tfvars and fill in your actual values
+
+# SSH Configuration
+ssh_key_name = "your-ssh-key-name"
+
+# Network Security
+allowed_ip = "YOUR_PUBLIC_IP/32"  # e.g., "203.0.113.1/32"
+
+# Instance Configuration (optional overrides)
+# instance_type = "t2.xlarge"
+# volume_size   = 100
+# ami_id        = "ami-0dd67d541aa70c8b9"
+
+# Usage Instructions:
+# 1. Copy this file: cp terraform.tfvars.example terraform.tfvars
+# 2. Edit terraform.tfvars with your actual values
+# 3. Never commit terraform.tfvars to version control
+# 4. Run terraform commands normally

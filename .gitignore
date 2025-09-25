@@ -1,0 +1,62 @@
+# Terraform files to exclude from Git
+terraform.tfstate
+terraform.tfstate.backup
+terraform.tfstate.*
+.terraform/
+.terraform.lock.hcl
+terraform.tfvars
+
+# Sensitive credential files
+credentials.env
+*.pem
+*.key
+*.p12
+*.pfx
+
+# AWS credentials
+.aws/
+aws-credentials.json
+
+# Environment variables
+.env
+.env.local
+.env.production
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Backup files
+*.bak
+*.backup
+
+# SSH keys
+id_rsa
+id_rsa.pub
+id_ed25519
+id_ed25519.pub
+
+# Local configuration overrides
+local.tf
+override.tf
