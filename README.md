@@ -139,14 +139,14 @@ terra-ollama-1/
 | **EC2 Instance** | `t2.xlarge` | Ubuntu 24.04 LTS, 4 vCPUs, 16GB RAM |
 | **EBS Volume** | `100GB gp3` | Auto-deleted on termination |
 | **Security Group** | `ollama-security-group` | IP-restricted (SSH + Ollama) |
-| **Public IP** | Dynamic | `15.222.244.108` (current) |
+| **Public IP** | Dynamic | `xxx.xxx.xxx.xxx` (current) |
 
 ### Security Configuration
 
 - **SSH Access**: Port 22 (restricted to your IP)
 - **Ollama Service**: Port 11434 (restricted to your IP)
 - **Outbound Traffic**: All allowed
-- **IP Whitelist**: `50.98.231.234/32`
+- **IP Whitelist**: `xxx.xxx.xx.xxx/32`
 
 ### Model Information
 
@@ -161,12 +161,69 @@ terra-ollama-1/
 ### API Testing
 ```bash
 # Simple test
-curl -X POST http://15.222.244.108:11434/api/generate \
+curl -X POST http://xxx.xxx.xxx.xxx:11434/api/generate \
   -H 'Content-Type: application/json' \
   -d '{"model": "gemma2:9b", "prompt": "Hello, how are you?"}'
 
 # Check available models
-curl http://15.222.244.108:11434/api/tags
+curl http://xxx.xxx.xxx.xxx:11434/api/tags
+```
+
+### Example of Inference Call
+
+**Basic Inference Request:**
+```bash
+curl -X POST http://xxx.xxx.xxx.xxx:11434/api/generate \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "model": "gemma2:9b",
+    "prompt": "Explain quantum computing in simple terms",
+    "stream": false
+  }'
+```
+
+**Advanced Inference with Parameters:**
+```bash
+curl -X POST http://xxx.xxx.xxx.xxx:11434/api/generate \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "model": "gemma2:9b",
+    "prompt": "Write a Python function to calculate fibonacci numbers",
+    "stream": false,
+    "options": {
+      "temperature": 0.7,
+      "top_p": 0.9,
+      "max_tokens": 500
+    }
+  }'
+```
+
+**Streaming Inference (Real-time Response):**
+```bash
+curl -X POST http://xxx.xxx.xxx.xxx:11434/api/generate \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "model": "gemma2:9b",
+    "prompt": "Tell me a story about space exploration",
+    "stream": true
+  }'
+```
+
+**Expected Response Format:**
+```json
+{
+  "model": "gemma2:9b",
+  "created_at": "2024-01-15T10:30:00Z",
+  "response": "Quantum computing is a revolutionary technology that...",
+  "done": true,
+  "context": [1, 2, 3],
+  "total_duration": 4500000000,
+  "load_duration": 3000000000,
+  "prompt_eval_count": 10,
+  "prompt_eval_duration": 1000000000,
+  "eval_count": 50,
+  "eval_duration": 500000000
+}
 ```
 
 ## 🐍 Python Interactive Interface
@@ -195,13 +252,13 @@ curl http://15.222.244.108:11434/api/tags
 python3 gemma_interactive.py
 
 # Connect to specific EC2 instance
-python3 gemma_interactive.py -H 15.222.244.108
+python3 gemma_interactive.py -H xxx.xxx.xxx.xxx
 
 # Use different model
 python3 gemma_interactive.py -m gemma2:2b
 
 # Connect to EC2 hostname
-python3 gemma_interactive.py -H ec2-15-222-244-108.ca-central-1.compute.amazonaws.com
+python3 gemma_interactive.py -H ec2-xxx.xxx.xxx.ca-central-1.compute.amazonaws.com
 ```
 
 ### Available Commands
@@ -234,7 +291,7 @@ python3 gemma_interactive.py -H YOUR_EC2_IP
 
 ### SSH Access
 ```bash
-ssh -i YourKeyName3.pem ubuntu@15.222.244.108
+ssh -i YourKeyName3.pem ubuntu@xxx.xxx.xxx.xxx
 ```
 
 ## 🔍 Monitoring & Management
@@ -242,26 +299,18 @@ ssh -i YourKeyName3.pem ubuntu@15.222.244.108
 ### Service Status
 ```bash
 # Check Ollama service status
-ssh -i YourKeyName3.pem ubuntu@15.222.244.108 "systemctl status ollama"
+ssh -i YourKeyName3.pem ubuntu@xxx.xxx.xxx.xxx "systemctl status ollama"
 
 # View service logs
-ssh -i YourKeyName3.pem ubuntu@15.222.244.108 "journalctl -u ollama -f"
+ssh -i YourKeyName3.pem ubuntu@xxx.xxx.xxx.xxx "journalctl -u ollama -f"
 ```
 
 ### Setup Logs
 ```bash
 # View initialization logs
-ssh -i YourKeyName3.pem ubuntu@15.222.244.108 "cat /var/log/ollama-setup.log"
+ssh -i YourKeyName3.pem ubuntu@xxx.xxx.xxx.xxx "cat /var/log/ollama-setup.log"
 ```
 
-## 💰 Cost Estimation
-
-| Resource | Cost (USD/month) |
-|----------|------------------|
-| **t2.xlarge** | ~$150-200 |
-| **100GB EBS** | ~$10 |
-| **Data Transfer** | Variable |
-| **Total** | ~$160-210/month |
 
 *Costs may vary by region and usage patterns*
 
@@ -280,19 +329,19 @@ ssh -i YourKeyName3.pem ubuntu@15.222.244.108 "cat /var/log/ollama-setup.log"
 **Service Not Responding**
 ```bash
 # Check if Ollama is running
-curl http://15.222.244.108:11434/api/tags
+curl http://xxx.xxx.xxx.xxx:11434/api/tags
 
 # SSH and check service status
-ssh -i YourKeyName3.pem ubuntu@15.222.244.108 "systemctl status ollama"
+ssh -i YourKeyName3.pem ubuntu@xxx.xxx.xxx.xxx "systemctl status ollama"
 ```
 
 **Model Not Available**
 ```bash
 # Check if model is downloaded
-ssh -i YourKeyName3.pem ubuntu@15.222.244.108 "sudo -u ollama ollama list"
+ssh -i YourKeyName3.pem ubuntu@xxx.xxx.xxx.xxx "sudo -u ollama ollama list"
 
 # Manually pull model if needed
-ssh -i YourKeyName3.pem ubuntu@15.222.244.108 "sudo -u ollama ollama pull gemma2:9b"
+ssh -i YourKeyName3.pem ubuntu@xxx.xxx.xxx.xxx "sudo -u ollama ollama pull gemma2:9b"
 ```
 
 **IP Access Issues**

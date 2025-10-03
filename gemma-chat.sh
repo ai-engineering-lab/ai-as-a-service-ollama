@@ -6,7 +6,7 @@
 ###############################################
 
 # Configuration
-EC2_HOST="15.222.244.108"  # Actual EC2 public IP
+EC2_HOST="35.182.154.119"  # Actual EC2 public IP
 OLLAMA_PORT="11434"
 MODEL="gemma2:9b"
 

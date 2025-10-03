@@ -13,7 +13,7 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Configuration
-EC2_HOST="15.222.244.108"  # Actual EC2 public IP
+EC2_HOST="15.222.252.193"  # Actual EC2 public IP
 OLLAMA_PORT="11434"
 SSH_KEY="YourKeyName3.pem"  # Update this with your actual key file
 SSH_USER="ubuntu"
