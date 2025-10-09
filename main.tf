@@ -22,8 +22,8 @@ variable "ssh_key_name" {
 variable "allowed_ip" {
   description = "IP address allowed to access the instance (CIDR format)"
   type        = string
-  # IMPORTANT: change this to your public IP with /32, e.g. "144.172.157.231/32"
-  default = "144.172.157.231/32"
+  # IMPORTANT: change this to your public IP with /32, e.g. "144.172.xxx.xxx/32"
+  default = "0.0.0.0/0"
 }
 
 # Security Group allowing only your IP
