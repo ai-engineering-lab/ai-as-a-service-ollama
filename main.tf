@@ -1,16 +1,18 @@
-
 ###############################################
-# TERRAFORM to build EC2-OLLAMA with Gemma AI
+# TERRAFORM to build EC2-OLLAMA with Phi Mini
 #
 # Region: ca-central-1 (Canada Central)
-# Designer: Dang Hoang, AI Eng.
-#
+# Base: Original Gemma version (modified for phi4-mini:3.8b)
+# Notes:
+#  - Removed awscli from packages (breaks on Ubuntu 24.04 default repos)
+#  - Smaller instance & disk (adjust as needed)
+###############################################
 
 provider "aws" {
   region = "ca-central-1"
 }
 
-# Variables for sensitive configuration
+# Variables for sensitive / overridable configuration
 variable "ssh_key_name" {
   description = "Name of the SSH key pair to use for EC2 instance"
   type        = string
@@ -20,15 +22,16 @@ variable "ssh_key_name" {
 variable "allowed_ip" {
   description = "IP address allowed to access the instance (CIDR format)"
   type        = string
-  default     = "0.0.0.0/0"  # Change this to your IP
+  # IMPORTANT: change this to your public IP with /32, e.g. "144.172.157.231/32"
+  default = "144.172.157.231/32"
 }
 
-# Custom security group allowing access only from your current IP
+# Security Group allowing only your IP
 resource "aws_security_group" "ollama_sg" {
   name        = "ollama-security-group"
   description = "Security group for Ollama instance - restricted to current IP"
-  
-  # Allow SSH access from your IP
+
+  # SSH
   ingress {
     from_port   = 22
     to_port     = 22
@@ -36,8 +39,8 @@ resource "aws_security_group" "ollama_sg" {
     cidr_blocks = [var.allowed_ip]
     description = "SSH access from allowed IP"
   }
-  
-  # Allow Ollama service access from your IP
+
+  # Ollama API
   ingress {
     from_port   = 11434
     to_port     = 11434
@@ -45,8 +48,8 @@ resource "aws_security_group" "ollama_sg" {
     cidr_blocks = [var.allowed_ip]
     description = "Ollama service access from allowed IP"
   }
-  
-  # Allow all outbound traffic
+
+  # All outbound
   egress {
     from_port   = 0
     to_port     = 0
@@ -61,43 +64,49 @@ resource "aws_security_group" "ollama_sg" {
 }
 
 resource "aws_instance" "terraform-ollama-1456" {
-  ami                    = "ami-0dd67d541aa70c8b9"  # Ubuntu 24.04 LTS
-  instance_type          = "t2.xlarge"
+  ami                    = "ami-0dd67d541aa70c8b9" # Ubuntu 24.04 LTS (static)
+  instance_type          = "t3.large"              # Smaller than t2.xlarge; adjust as needed
   key_name               = var.ssh_key_name
   vpc_security_group_ids = [aws_security_group.ollama_sg.id]
 
+  # Root volume (phi4-mini doesn't need 100GB; 50GB is roomy)
   ebs_block_device {
-    device_name           = "/dev/sda1" // This is typically the root volume
-    volume_size           = 100          // Set the volume size to 100GB
-    delete_on_termination = true         // Ensure the volume is deleted when the instance is terminated
+    device_name           = "/dev/sda1"
+    volume_size           = 50
+    delete_on_termination = true
   }
 
-
   #################################################################
-  ########### Generate your PEM for key_name ######################
-  #aws ec2 create-key-pair --key-name YourKeyName --query 'KeyMaterial' --output text > YourKeyName.pem
+  # Generate your PEM for key_name (example):
+  # aws ec2 create-key-pair --key-name YourKeyName \
+  #   --query 'KeyMaterial' --output text > YourKeyName.pem
   #################################################################
 
   user_data = <<-EOF
               #!/bin/bash
+              set -euo pipefail
 
-              # Update system packages
-              sudo apt-get update
-              sudo apt -y upgrade
+              LOG_FILE=/var/log/ollama-setup.log
+              exec > >(tee -a "$LOG_FILE") 2>&1
 
-              # Install required packages
-              sudo apt-get install -y gnupg software-properties-common awscli unzip curl
+              echo "[1/8] Update system packages"
+              apt-get update
+              apt-get -y upgrade
 
-              # Install Ollama
+              echo "[2/8] Install required packages (no awscli here)"
+              # Removed awscli to avoid failure on Ubuntu 24.04
+              apt-get install -y gnupg software-properties-common unzip curl
+
+              echo "[3/8] Install Ollama"
               curl -fsSL https://ollama.com/install.sh | sh
 
-              # Create ollama user and set up service
-              sudo useradd -r -s /bin/false -m -d /usr/share/ollama ollama
-              sudo mkdir -p /usr/share/ollama/.ollama
-              sudo chown -R ollama:ollama /usr/share/ollama
+              echo "[4/8] Create ollama user (idempotent) and directories"
+              id ollama 2>/dev/null || useradd -r -s /bin/false -m -d /usr/share/ollama ollama
+              mkdir -p /usr/share/ollama/.ollama
+              chown -R ollama:ollama /usr/share/ollama/.ollama
 
-              # Create systemd service for Ollama
-              sudo tee /etc/systemd/system/ollama.service > /dev/null <<EOL
+              echo "[5/8] Create systemd service"
+              tee /etc/systemd/system/ollama.service > /dev/null <<EOL
               [Unit]
               Description=Ollama Service
               After=network-online.target
@@ -115,31 +124,25 @@ resource "aws_instance" "terraform-ollama-1456" {
               WantedBy=default.target
               EOL
 
-              # Enable and start Ollama service
-              sudo systemctl daemon-reload
-              sudo systemctl enable ollama
-              sudo systemctl start ollama
+              echo "[6/8] Enable and start Ollama"
+              systemctl daemon-reload
+              systemctl enable ollama
+              systemctl start ollama
 
-              # Wait for Ollama service to be ready
-              sleep 30
+              echo "[7/8] Wait for service to settle"
+              sleep 20
 
-              # Pull the latest Gemma model (using gemma2:9b as it's a good balance of performance/size)
-              sudo -u ollama ollama pull gemma2:9b
+              echo "[8/8] Pull phi model (phi4-mini:3.8b)"
+              sudo -u ollama ollama pull phi4-mini:3.8b || echo "Model pull attempt finished (non-fatal if failed)"
 
-              # Optional: Pull additional Gemma variants if needed
-              # sudo -u ollama ollama pull gemma2:2b    # Smaller, faster model
-              # sudo -u ollama ollama pull gemma2:27b   # Larger, more capable model
-
-              # Log completion
-              echo "Ollama service started with Gemma2:9b model" >> /var/log/ollama-setup.log
-              echo "Service status: $(systemctl is-active ollama)" >> /var/log/ollama-setup.log
-              echo "Available models: $(sudo -u ollama ollama list)" >> /var/log/ollama-setup.log
-
+              echo "----- SUMMARY -----" >> "$LOG_FILE"
+              echo "Service status: $(systemctl is-active ollama)" >> "$LOG_FILE"
+              echo "Available models: $(sudo -u ollama ollama list || true)" >> "$LOG_FILE"
+              echo "Setup complete for phi4-mini:3.8b" >> "$LOG_FILE"
               EOF
 
   tags = {
-    Name = "terraform-ollama-1456"
+    Name  = "terraform-ollama-1456"
+    Model = "phi4-mini:3.8b"
   }
-
-
 }
